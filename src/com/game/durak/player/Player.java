@@ -25,6 +25,10 @@ public class Player {
         hand.add(card);
     }
 
+    public void addCards(List<Card> cards) {
+        hand.addAll(cards);
+    }
+
     public Card playCard(int index) {
         return hand.remove(index);
     }

@@ -3,36 +3,13 @@ package com.game.durak.cards;
 import com.game.durak.cards.enums.Rank;
 import com.game.durak.cards.enums.Suit;
 
-import java.util.Objects;
+public record Card(Suit suit, Rank rank) {
 
-public class Card {
-    private final Suit suit;
-    private final Rank rank;
-
-    public Card(Suit suit, Rank rank) {
-        this.suit = suit;
-        this.rank = rank;
-    }
-
-    public Suit getSuit() {
-        return suit;
-    }
-
-    public Rank getRank() {
-        return rank;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Card card = (Card) o;
-        return suit == card.suit && rank == card.rank;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(suit, rank);
+    public boolean beats(Card other, Suit trumpSuit) {
+        if (this.suit == other.suit && this.rank.ordinal() > other.rank.ordinal()) {
+            return true;
+        }
+        return this.suit == trumpSuit && other.suit != trumpSuit;
     }
 
     @Override

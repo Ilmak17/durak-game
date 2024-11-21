@@ -24,14 +24,17 @@ public class Table {
     }
 
     public boolean canDefend(Card attackCard, Card defenseCard) {
-        if (defenseCard.getSuit() == attackCard.getSuit() && defenseCard.getRank().ordinal() > attackCard.getRank().ordinal()) {
-            return true;
-        }
-        return defenseCard.getSuit() == trumpSuit && attackCard.getSuit() != trumpSuit;
+        return defenseCard.beats(attackCard, trumpSuit);
     }
 
     public boolean isDefended() {
         return attackCards.size() == defenseCards.size();
+    }
+
+    public List<Card> getAllCards() {
+        List<Card> all = new ArrayList<>(attackCards);
+        all.addAll(defenseCards);
+        return all;
     }
 
     public void clear() {
@@ -39,9 +42,7 @@ public class Table {
         defenseCards.clear();
     }
 
-    public List<Card> getAllCards() {
-        List<Card> all = new ArrayList<>(attackCards);
-        all.addAll(defenseCards);
-        return all;
+    public boolean canThrowMoreCards(int maxCards) {
+        return attackCards.size() + defenseCards.size() < maxCards;
     }
 }
