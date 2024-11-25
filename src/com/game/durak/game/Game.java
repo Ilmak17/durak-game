@@ -2,158 +2,126 @@ package com.game.durak.game;
 
 import com.game.durak.cards.Card;
 import com.game.durak.cards.Deck;
+import com.game.durak.cards.enums.Suit;
 import com.game.durak.player.Player;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+
 public class Game {
-    private final Deck deck;
-    private final List<Player> players;
-    private final Table table;
+    private final Deck deck = new Deck();
+    private final List<Player> players = new ArrayList<>();
+    private Suit trumpSuit;
     private final Scanner scanner = new Scanner(System.in);
-    private int currentPlayerIndex = 0;
 
-    public Game(List<Player> players) {
-        this.deck = new Deck();
-        this.players = players;
-        Card trumpCard = deck.dealCard();
-        System.out.println("Trump suit: " + trumpCard.suit());
-        this.table = new Table(trumpCard.suit());
-        dealInitialCards(trumpCard);
-    }
-
-    private void dealInitialCards(Card trumpCard) {
-        for (int i = 0; i < 6; i++) {
-            for (Player player : players) {
-                if (!deck.isEmpty()) {
-                    player.addCard(deck.dealCard());
-                }
-            }
+    public void setupGame() {
+        System.out.println("=== Welcome to Durak ===");
+        System.out.print("Enter the number of players (2-6): ");
+        int numPlayers = scanner.nextInt();
+        while (numPlayers < 2 || numPlayers > 6) {
+            System.out.print("Invalid input. Enter a number between 2 and 6: ");
+            numPlayers = scanner.nextInt();
         }
+
+        for (int i = 1; i <= numPlayers; i++) {
+            System.out.print("Enter name for player " + i + ": ");
+            String name = scanner.next();
+            players.add(new Player(name, true));
+        }
+
         deck.shuffle();
-        deck.addCardToBottom(trumpCard);
+        determineTrumpSuit();
+        dealInitialCards();
     }
 
-    public void playGame() {
+    private void determineTrumpSuit() {
+        deck.draw().ifPresent(card -> trumpSuit = card.suit());
+        System.out.println("Trump suit: " + trumpSuit.getSymbol());
+    }
+
+    private void dealInitialCards() {
+        for (int i = 0; i < 6; i++) {
+            players.forEach(player -> deck.draw().ifPresent(player::addCard));
+        }
+    }
+
+    public void startGame() {
+        System.out.println("\n=== Game Starts! ===");
         while (!isGameOver()) {
-            Player attacker = players.get(currentPlayerIndex);
-            Player defender = getNextPlayer(currentPlayerIndex);
-
-            System.out.println("\n" + attacker.getName() + "'s turn to attack.");
-            attack(attacker, defender);
-
-            if (!table.isDefended()) {
-                System.out.println(defender.getName() + " takes all cards.");
-                defender.addCards(table.getAllCards());
-                table.clear();
-                refillHand(attacker);
-                continue;
-            }
-
-            System.out.println(defender.getName() + " successfully defended.");
-            table.clear();
-            refillHands();
-
-            currentPlayerIndex = players.indexOf(defender);
+            executeTurn();
         }
-
-        announceWinner();
-    }
-
-    private Player getNextPlayer(int currentIndex) {
-        return players.get((currentIndex + 1) % players.size());
-    }
-
-    private void attack(Player attacker, Player defender) {
-        System.out.println(attacker);
-        int attackIndex = getInput("Choose card to attack: ", attacker.getHand().size());
-        Card attackCard = attacker.playCard(attackIndex);
-        table.addAttackCard(attackCard);
-        System.out.println(attacker.getName() + " attacks with " + attackCard);
-
-        // Подбрасывание карт
-        for (int i = 1; i < players.size(); i++) {
-            Player nextPlayer = players.get((currentPlayerIndex + i) % players.size());
-            if (nextPlayer.equals(defender)) break;
-
-            System.out.println(nextPlayer.getName() + "'s turn to throw cards.");
-            System.out.println(nextPlayer);
-
-            while (table.canThrowMoreCards(6)) {
-                int throwIndex = getInput("Choose card to throw or -1 to skip: ", nextPlayer.getHand().size());
-                if (throwIndex == -1) break;
-
-                Card throwCard = nextPlayer.playCard(throwIndex);
-                if (table.getAllCards().stream().anyMatch(card -> card.rank() == throwCard.rank())) {
-                    table.addAttackCard(throwCard);
-                    System.out.println(nextPlayer.getName() + " throws " + throwCard);
-                } else {
-                    System.out.println("Invalid card to throw. Try again.");
-                    nextPlayer.addCard(throwCard);
-                }
-            }
-        }
-
-        defend(defender, attackCard);
-    }
-
-    private void defend(Player defender, Card attackCard) {
-        System.out.println(defender);
-
-        while (true) {
-            int defenseIndex = getInput("Choose card to defend or -1 to take all cards: ", defender.getHand().size());
-            if (defenseIndex == -1) {
-                break; // Игрок решил взять карты
-            }
-
-            Card defenseCard = defender.playCard(defenseIndex);
-            if (!table.canDefend(attackCard, defenseCard)) {
-                System.out.println("Invalid defense! Try again.");
-                defender.addCard(defenseCard);
-            } else {
-                table.addDefenseCard(defenseCard);
-                System.out.println(defender.getName() + " defends with " + defenseCard);
-                break;
-            }
-        }
-    }
-
-    private void refillHands() {
+        System.out.println("\n=== Game Over ===");
         players.stream()
-                .filter(player -> !player.hasNoCards())
-                .forEach(this::refillHand);
-    }
-
-    private void refillHand(Player player) {
-        while (player.getHand().size() < 6 && !deck.isEmpty()) {
-            player.addCard(deck.dealCard());
-        }
-    }
-
-    private int getInput(String prompt, int max) {
-        int input;
-        while (true) {
-            System.out.print(prompt);
-            if (scanner.hasNextInt()) {
-                input = scanner.nextInt();
-                if (input >= -1 && input < max) {
-                    return input;
-                }
-            }
-            System.out.println("Invalid input. Please try again.");
-            scanner.nextLine();
-        }
+                .filter(player -> !player.getHand().isEmpty())
+                .forEach(player -> System.out.println(player.getName() + " is the Durak!"));
     }
 
     private boolean isGameOver() {
-        return players.stream().filter(player -> !player.hasNoCards()).count() == 1;
+        return players.stream().filter(player -> !player.getHand().isEmpty()).count() <= 1;
     }
 
-    private void announceWinner() {
-        players.stream()
-                .filter(Player::hasNoCards)
-                .findFirst()
-                .ifPresent(winner -> System.out.println(winner.getName() + " wins!"));
+    private void executeTurn() {
+        Player attacker = players.get(0);
+        Player defender = players.get(1);
+
+        System.out.println("\n" + attacker.getName() + " attacks " + defender.getName());
+        attacker.printHand();
+
+        Card attackCard = chooseAttackCard(attacker);
+        if (attackCard == null) return;
+
+        System.out.println(attacker.getName() + " plays " + attackCard);
+        attacker.removeCard(attackCard);
+
+        Card defenseCard = chooseDefenseCard(defender, attackCard);
+
+        if (defenseCard != null) {
+            System.out.println(defender.getName() + " defends with " + defenseCard);
+            defender.removeCard(defenseCard);
+        } else {
+            System.out.println(defender.getName() + " cannot defend and takes the card.");
+            defender.addCard(attackCard);
+        }
+
+        players.add(players.remove(0));
+    }
+
+    private Card chooseAttackCard(Player attacker) {
+        if (attacker.isHuman()) {
+            System.out.print("Choose a card to attack with (1-" + attacker.getHand().size() + "): ");
+            int attackIndex = scanner.nextInt() - 1;
+            while (attackIndex < 0 || attackIndex >= attacker.getHand().size()) {
+                System.out.print("Invalid choice. Choose again (1-" + attacker.getHand().size() + "): ");
+                attackIndex = scanner.nextInt() - 1;
+            }
+            return attacker.getHand().get(attackIndex);
+        }
+        return attacker.chooseCardToAttack();
+    }
+
+    private Card chooseDefenseCard(Player defender, Card attackCard) {
+        if (defender.isHuman()) {
+            defender.printHand();
+            System.out.print("Choose a card to defend (1-" + defender.getHand().size() + " or 0 to give up): ");
+            int defenseIndex = scanner.nextInt() - 1;
+            if (defenseIndex == -1) return null;
+            while (defenseIndex < 0 || defenseIndex >= defender.getHand().size() ||
+                    !canDefend(defender.getHand().get(defenseIndex), attackCard)) {
+                System.out.print("Invalid choice. Choose again (1-" + defender.getHand().size() + "): ");
+                defenseIndex = scanner.nextInt() - 1;
+                if (defenseIndex == -1) return null;
+            }
+            return defender.getHand().get(defenseIndex);
+        }
+        return defender.chooseCardToDefend(attackCard, trumpSuit);
+    }
+
+    private boolean canDefend(Card defenderCard, Card attackCard) {
+        if (defenderCard.suit() == attackCard.suit()) {
+            return defenderCard.rank().ordinal() > attackCard.rank().ordinal();
+        }
+        return defenderCard.suit() == trumpSuit;
     }
 }

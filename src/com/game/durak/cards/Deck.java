@@ -6,35 +6,25 @@ import com.game.durak.cards.enums.Suit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 public class Deck {
     private final List<Card> cards = new ArrayList<>();
 
     public Deck() {
-        for (Suit suit : Suit.values()) {
-            for (Rank rank : Rank.values()) {
-                cards.add(new Card(suit, rank));
-            }
-        }
-        shuffle();
+        cards.addAll(
+                Stream.of(Suit.values())
+                        .flatMap(suit -> Stream.of(Rank.values()).map(rank -> new Card(suit, rank)))
+                        .toList()
+        );
     }
 
     public void shuffle() {
         Collections.shuffle(cards);
     }
 
-    public Card dealCard() {
-        if (cards.isEmpty()) {
-            throw new IllegalStateException("No cards left in the deck.");
-        }
-        return cards.remove(cards.size() - 1);
-    }
-
-    public void addCardToBottom(Card card) {
-        cards.add(0, card);
-    }
-
-    public boolean isEmpty() {
-        return cards.isEmpty();
+    public Optional<Card> draw() {
+        return cards.isEmpty() ? Optional.empty() : Optional.of(cards.remove(0));
     }
 }
