@@ -5,25 +5,21 @@ import com.game.durak.cards.Deck;
 import com.game.durak.cards.enums.Suit;
 import com.game.durak.player.Player;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
-
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Game {
     private final Deck deck = new Deck();
     private final List<Player> players = new ArrayList<>();
+    private final List<Card> table = new ArrayList<>();
+    private final List<Card> discardPile = new ArrayList<>();
+    private final Set<Player> skippedPlayers = new HashSet<>();
     private Suit trumpSuit;
     private final Scanner scanner = new Scanner(System.in);
 
     public void setupGame() {
         System.out.println("=== Welcome to Durak ===");
-        System.out.print("Enter the number of players (2-6): ");
-        int numPlayers = scanner.nextInt();
-        while (numPlayers < 2 || numPlayers > 6) {
-            System.out.print("Invalid input. Enter a number between 2 and 6: ");
-            numPlayers = scanner.nextInt();
-        }
+        int numPlayers = getInput("Enter the number of players (2-6): ", 2, 6);
 
         for (int i = 1; i <= numPlayers; i++) {
             System.out.print("Enter name for player " + i + ": ");
@@ -36,8 +32,17 @@ public class Game {
         dealInitialCards();
     }
 
+    private int getInput(String prompt, int min, int max) {
+        int input;
+        do {
+            System.out.print(prompt);
+            input = scanner.nextInt();
+        } while (input < min || input > max);
+        return input;
+    }
+
     private void determineTrumpSuit() {
-        deck.draw().ifPresent(card -> trumpSuit = card.suit());
+        deck.draw().ifPresent(card -> trumpSuit = card.getSuit());
         System.out.println("Trump suit: " + trumpSuit.getSymbol());
     }
 
@@ -52,76 +57,135 @@ public class Game {
         while (!isGameOver()) {
             executeTurn();
         }
+        endGame();
+    }
+
+    private void endGame() {
         System.out.println("\n=== Game Over ===");
         players.stream()
-                .filter(player -> !player.getHand().isEmpty())
+                .filter(player -> !player.hasNoCards())
                 .forEach(player -> System.out.println(player.getName() + " is the Durak!"));
     }
 
     private boolean isGameOver() {
-        return players.stream().filter(player -> !player.getHand().isEmpty()).count() <= 1;
+        long activePlayers = players.stream().filter(player -> !player.hasNoCards()).count();
+        return activePlayers <= 1 && deck.isEmpty();
     }
 
     private void executeTurn() {
         Player attacker = players.get(0);
-        Player defender = players.get(1);
+        Player defender = findNextDefender();
 
         System.out.println("\n" + attacker.getName() + " attacks " + defender.getName());
         attacker.printHand();
 
-        Card attackCard = chooseAttackCard(attacker);
-        if (attackCard == null) return;
+        List<Card> attackCards = chooseAttackCards(attacker, defender.getHand().size());
+        System.out.println(attacker.getName() + " attacks with " + attackCards);
 
-        System.out.println(attacker.getName() + " plays " + attackCard);
-        attacker.removeCard(attackCard);
+        boolean defenderTakesCards = !defendCards(defender, attackCards);
 
-        Card defenseCard = chooseDefenseCard(defender, attackCard);
+        if (defenderTakesCards) {
+            System.out.println(defender.getName() + " cannot defend and takes the cards.");
+            defender.getHand().addAll(attackCards);
+            defender.getHand().addAll(table);
 
-        if (defenseCard != null) {
-            System.out.println(defender.getName() + " defends with " + defenseCard);
-            defender.removeCard(defenseCard);
+            skippedPlayers.add(defender);
         } else {
-            System.out.println(defender.getName() + " cannot defend and takes the card.");
-            defender.addCard(attackCard);
+            System.out.println(defender.getName() + " successfully defended!");
+            discardPile.addAll(attackCards);
+            discardPile.addAll(table);
         }
 
-        players.add(players.remove(0));
+        table.clear();
+        drawCards();
+
+        if (!defenderTakesCards) {
+            rotatePlayers();
+        }
     }
 
-    private Card chooseAttackCard(Player attacker) {
-        if (attacker.isHuman()) {
-            System.out.print("Choose a card to attack with (1-" + attacker.getHand().size() + "): ");
-            int attackIndex = scanner.nextInt() - 1;
-            while (attackIndex < 0 || attackIndex >= attacker.getHand().size()) {
-                System.out.print("Invalid choice. Choose again (1-" + attacker.getHand().size() + "): ");
-                attackIndex = scanner.nextInt() - 1;
+    private Player findNextDefender() {
+        for (int i = 1; i < players.size(); i++) {
+            Player potentialDefender = players.get(i);
+            if (!skippedPlayers.contains(potentialDefender)) {
+                return potentialDefender;
             }
-            return attacker.getHand().get(attackIndex);
         }
-        return attacker.chooseCardToAttack();
+        skippedPlayers.clear();
+        return players.get(1);
     }
 
-    private Card chooseDefenseCard(Player defender, Card attackCard) {
-        if (defender.isHuman()) {
-            defender.printHand();
-            System.out.print("Choose a card to defend (1-" + defender.getHand().size() + " or 0 to give up): ");
-            int defenseIndex = scanner.nextInt() - 1;
-            if (defenseIndex == -1) return null;
-            while (defenseIndex < 0 || defenseIndex >= defender.getHand().size() ||
-                    !canDefend(defender.getHand().get(defenseIndex), attackCard)) {
-                System.out.print("Invalid choice. Choose again (1-" + defender.getHand().size() + "): ");
-                defenseIndex = scanner.nextInt() - 1;
-                if (defenseIndex == -1) return null;
-            }
-            return defender.getHand().get(defenseIndex);
+    private List<Card> chooseAttackCards(Player attacker, int maxCards) {
+        if (!attacker.isHuman()) {
+            return List.of(attacker.getHand().get(0));
         }
-        return defender.chooseCardToDefend(attackCard, trumpSuit);
+
+        System.out.print("Enter card positions to attack (comma-separated, e.g., 1,2): ");
+        String input = scanner.next();
+        return Arrays.stream(input.split(","))
+                .map(pos -> Integer.parseInt(pos.trim()) - 1)
+                .filter(index -> index >= 0 && index < attacker.getHand().size())
+                .limit(maxCards)
+                .map(attacker.getHand()::get)
+                .peek(card -> table.add(card))
+                .peek(attacker::removeCard)
+                .collect(Collectors.toList());
+    }
+
+    private boolean defendCards(Player defender, List<Card> attackCards) {
+        for (Card attackCard : attackCards) {
+            if (!defendSingleCard(defender, attackCard)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean defendSingleCard(Player defender, Card attackCard) {
+        if (!defender.isHuman()) {
+            return defender.getHand().stream()
+                    .filter(card -> canDefend(card, attackCard))
+                    .findFirst()
+                    .map(card -> {
+                        defender.removeCard(card);
+                        table.add(card);
+                        return true;
+                    }).orElse(false);
+        }
+
+        defender.printHand();
+        System.out.print("Choose a card to defend against " + attackCard + " (or 0 to give up): ");
+        int index = scanner.nextInt() - 1;
+
+        if (index == -1) return false;
+
+        Card defenseCard = defender.getHand().get(index);
+        if (canDefend(defenseCard, attackCard)) {
+            defender.removeCard(defenseCard);
+            table.add(defenseCard);
+            return true;
+        }
+
+        System.out.println("Invalid defense! Try again.");
+        return defendSingleCard(defender, attackCard);
     }
 
     private boolean canDefend(Card defenderCard, Card attackCard) {
-        if (defenderCard.suit() == attackCard.suit()) {
-            return defenderCard.rank().ordinal() > attackCard.rank().ordinal();
+        if (defenderCard.getSuit() == attackCard.getSuit()) {
+            return defenderCard.getRank().getValue() > attackCard.getRank().getValue();
         }
-        return defenderCard.suit() == trumpSuit;
+        return defenderCard.getSuit() == trumpSuit;
+    }
+
+    private void drawCards() {
+        players.forEach(player -> {
+            while (player.getHand().size() < 6 && !deck.isEmpty()) {
+                deck.draw().ifPresent(player::addCard);
+            }
+        });
+    }
+
+    private void rotatePlayers() {
+        players.add(players.remove(0));
     }
 }

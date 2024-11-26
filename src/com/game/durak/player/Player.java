@@ -1,10 +1,10 @@
 package com.game.durak.player;
 
 import com.game.durak.cards.Card;
-import com.game.durak.cards.enums.Suit;
 
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class Player {
     private final String name;
@@ -25,7 +25,7 @@ public class Player {
     }
 
     public List<Card> getHand() {
-        return new ArrayList<>(hand);
+        return hand;
     }
 
     public void addCard(Card card) {
@@ -36,23 +36,6 @@ public class Player {
         hand.remove(card);
     }
 
-    public Card chooseCardToAttack() {
-        return isHuman ? hand.get(0) : hand.stream().findFirst().orElse(null);
-    }
-
-    public Card chooseCardToDefend(Card attackCard, Suit trumpSuit) {
-        return hand.stream()
-                .filter(card -> canDefend(card, attackCard, trumpSuit))
-                .findFirst()
-                .orElse(null);
-    }
-
-    private boolean canDefend(Card defenderCard, Card attackCard, Suit trumpSuit) {
-        if (defenderCard.suit() == attackCard.suit()) {
-            return Integer.valueOf(defenderCard.rank().getSymbol()) > Integer.valueOf(attackCard.rank().getSymbol());
-        }
-        return defenderCard.suit() == trumpSuit;
-    }
 
     public void printHand() {
         System.out.println(name + "'s Hand: ");
@@ -60,8 +43,7 @@ public class Player {
         System.out.println();
     }
 
-    @Override
-    public String toString() {
-        return name + " (Human: " + isHuman + ")";
+    public boolean hasNoCards() {
+        return hand.isEmpty();
     }
 }

@@ -3,13 +3,31 @@ package com.game.durak.cards;
 import com.game.durak.cards.enums.Rank;
 import com.game.durak.cards.enums.Suit;
 
-public record Card(Suit suit, Rank rank) {
+public class Card {
 
-    public boolean beats(Card other, Suit trumpSuit) {
-        if (this.suit == other.suit && this.rank.ordinal() > other.rank.ordinal()) {
-            return true;
-        }
-        return this.suit == trumpSuit && other.suit != trumpSuit;
+    private Suit suit;
+
+    private Rank rank;
+
+    public Card(Suit suit, Rank rank) {
+        this.suit = suit;
+        this.rank = rank;
+    }
+
+    public Suit getSuit() {
+        return suit;
+    }
+
+    public void setSuit(Suit suit) {
+        this.suit = suit;
+    }
+
+    public Rank getRank() {
+        return rank;
+    }
+
+    public void setRank(Rank rank) {
+        this.rank = rank;
     }
 
     @Override

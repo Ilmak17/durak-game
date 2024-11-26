@@ -1,7 +1,10 @@
 package com.game.durak.cards.enums;
 
 public enum Suit {
-    CLUBS("♣"), DIAMONDS("♦"), HEARTS("♥"), SPADES("♠");
+    CLUBS("♣"),
+    DIAMONDS("♦"),
+    HEARTS("♥"),
+    SPADES("♠");
 
     private final String symbol;
 
