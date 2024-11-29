@@ -1,6 +1,6 @@
-package src.com.game.durak52;
+package com.game.dumbcomp.durak;
 
-import src.com.game.durak52.game.Game;
+import com.game.dumbcomp.durak.game.Game;
 
 public class Main {
     public static void main(String[] args) {

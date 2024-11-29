@@ -1,4 +1,4 @@
-package com.game.durak.cards.enums;
+package com.game.dumbcomp.durak.cards.enums;
 
 public enum Suit {
     CLUBS("♣"),

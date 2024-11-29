@@ -1,9 +1,9 @@
-package com.game.durak.game;
+package com.game.dumbcomp.durak.game;
 
-import com.game.durak.cards.Card;
-import com.game.durak.cards.Deck;
-import com.game.durak.cards.enums.Suit;
-import com.game.durak.player.Player;
+import com.game.dumbcomp.durak.cards.Card;
+import com.game.dumbcomp.durak.cards.Deck;
+import com.game.dumbcomp.durak.cards.enums.Suit;
+import com.game.dumbcomp.durak.player.Player;
 
 import java.util.*;
 import java.util.stream.Collectors;

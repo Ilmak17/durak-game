@@ -1,7 +1,7 @@
-package com.game.durak.cards;
+package com.game.dumbcomp.durak.cards;
 
-import com.game.durak.cards.enums.Rank;
-import com.game.durak.cards.enums.Suit;
+import com.game.dumbcomp.durak.cards.enums.Rank;
+import com.game.dumbcomp.durak.cards.enums.Suit;
 
 import java.util.ArrayList;
 import java.util.Collections;
