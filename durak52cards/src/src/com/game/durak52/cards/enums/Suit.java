@@ -1,0 +1,18 @@
+package src.com.game.durak52.cards.enums;
+
+public enum Suit {
+    CLUBS("♣"),
+    DIAMONDS("♦"),
+    HEARTS("♥"),
+    SPADES("♠");
+
+    private final String symbol;
+
+    Suit(String symbol) {
+        this.symbol = symbol;
+    }
+
+    public String getSymbol() {
+        return symbol;
+    }
+}

@@ -1,10 +1,10 @@
 package com.game.durak.player;
 
+
 import com.game.durak.cards.Card;
 
 import java.util.ArrayList;
 import java.util.List;
-
 
 public class Player {
     private final String name;
