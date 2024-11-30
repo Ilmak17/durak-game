@@ -1,16 +1,19 @@
 package src.com.game.smartcomp.durak.game;
 
-import com.game.dumbcomp.durak.cards.Card;
-import com.game.dumbcomp.durak.cards.Deck;
-import com.game.dumbcomp.durak.cards.enums.Suit;
-import com.game.dumbcomp.durak.player.Player;
+import src.com.game.smartcomp.durak.cards.Card;
+import src.com.game.smartcomp.durak.cards.Deck;
+import src.com.game.smartcomp.durak.cards.enums.Suit;
+import src.com.game.smartcomp.durak.player.Player;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.Scanner;
+
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Game {
     private final Deck deck = new Deck();
@@ -27,7 +30,7 @@ public class Game {
         String name = scanner.next();
         players.add(new Player(name, true));
 
-        players.add(new Player("Bot", false));
+        players.add(new Player("Smart Bot", false));
 
         deck.shuffle();
         determineTrumpSuit();
@@ -79,13 +82,8 @@ public class Game {
 
         if (defenderTakesCards) {
             System.out.println(defender.getName() + " cannot defend and takes the cards.");
-
-            if (defender.getHand().size() >= 6) {
-                defender.getHand().addAll(attackCards);
-            } else {
-                defender.getHand().addAll(attackCards);
-                defender.getHand().addAll(table);
-            }
+            defender.getHand().addAll(attackCards);
+            defender.getHand().addAll(table);
         } else {
             System.out.println(defender.getName() + " successfully defended!");
             discardPile.addAll(attackCards);
@@ -94,13 +92,12 @@ public class Game {
 
         table.clear();
         drawCards();
-
         rotatePlayers();
     }
 
     private List<Card> chooseAttackCards(Player attacker, int maxCards) {
         if (!attacker.isHuman()) {
-            return chooseRandomAttackCards(attacker, maxCards);
+            return chooseSmartAttackCards(attacker, maxCards);
         }
 
         System.out.print("Enter card positions to attack (comma-separated, e.g., 1,2): ");
@@ -115,22 +112,13 @@ public class Game {
                 .toList();
     }
 
-    private List<Card> chooseRandomAttackCards(Player attacker, int maxCards) {
-        Random random = new Random();
-        int numCards = Math.min(maxCards, attacker.getHand().size());
-        List<Card> attackCards = new ArrayList<>();
-
-        while (attackCards.size() < numCards) {
-            int index = random.nextInt(attacker.getHand().size());
-            Card card = attacker.getHand().get(index);
-            if (!attackCards.contains(card)) {
-                attackCards.add(card);
-                table.add(card);
-                attacker.removeCard(card);
-            }
-        }
-
-        return attackCards;
+    private List<Card> chooseSmartAttackCards(Player attacker, int maxCards) {
+        return attacker.getHand().stream()
+                .sorted(Comparator.comparingInt(card -> card.getRank().getValue()))
+                .limit(maxCards)
+                .peek(table::add)
+                .peek(attacker::removeCard)
+                .collect(Collectors.toList());
     }
 
     private boolean defendCards(Player defender, List<Card> attackCards) {
@@ -144,7 +132,7 @@ public class Game {
 
     private boolean defendSingleCard(Player defender, Card attackCard) {
         if (!defender.isHuman()) {
-            return chooseRandomDefense(defender, attackCard);
+            return chooseSmartDefense(defender, attackCard);
         }
 
         defender.printHand();
@@ -164,10 +152,10 @@ public class Game {
         return defendSingleCard(defender, attackCard);
     }
 
-    private boolean chooseRandomDefense(Player defender, Card attackCard) {
+    private boolean chooseSmartDefense(Player defender, Card attackCard) {
         Optional<Card> validDefense = defender.getHand().stream()
                 .filter(card -> canDefend(card, attackCard))
-                .findFirst();
+                .min(Comparator.comparingInt(card -> card.getRank().getValue()));
 
         if (validDefense.isPresent()) {
             Card defenseCard = validDefense.get();
@@ -190,10 +178,6 @@ public class Game {
 
     private void drawCards() {
         players.forEach(player -> {
-            if (player.getHand().size() >= 6) {
-                return;
-            }
-
             while (player.getHand().size() < 6 && !deck.isEmpty()) {
                 deck.draw().ifPresent(player::addCard);
             }

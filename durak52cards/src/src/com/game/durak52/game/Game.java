@@ -137,7 +137,7 @@ public class Game {
                 .filter(index -> index >= 0 && index < attacker.getHand().size())
                 .limit(maxCards)
                 .map(attacker.getHand()::get)
-                .peek(card -> table.add(card))
+                .peek(table::add)
                 .peek(attacker::removeCard)
                 .collect(Collectors.toList());
     }

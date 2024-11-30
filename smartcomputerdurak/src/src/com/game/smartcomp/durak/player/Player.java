@@ -1,8 +1,7 @@
 package src.com.game.smartcomp.durak.player;
 
 
-import com.game.dumbcomp.durak.cards.Card;
-
+import src.com.game.smartcomp.durak.cards.Card;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -1,7 +1,7 @@
 package src.com.game.smartcomp.durak.cards;
 
-import com.game.dumbcomp.durak.cards.enums.Rank;
-import com.game.dumbcomp.durak.cards.enums.Suit;
+import src.com.game.smartcomp.durak.cards.enums.Rank;
+import src.com.game.smartcomp.durak.cards.enums.Suit;
 
 public class Card {
 
