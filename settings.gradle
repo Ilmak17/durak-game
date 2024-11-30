@@ -1,0 +1,5 @@
+rootProject.name = 'durak-game'
+
+include 'dumpcomputerdurak'
+include 'durak36cards'
+include 'durak52cards'
