@@ -63,12 +63,12 @@ public class Game {
     private void endGame() {
         System.out.println("\n=== Game Over ===");
         players.stream()
-                .filter(player -> !player.hasNoCards())
+                .filter(Player::hasNoCards)
                 .forEach(player -> System.out.println(player.getName() + " is the Durak!"));
     }
 
     private boolean isGameOver() {
-        long activePlayers = players.stream().filter(player -> !player.hasNoCards()).count();
+        long activePlayers = players.stream().filter(Player::hasNoCards).count();
         return activePlayers <= 1 && deck.isEmpty();
     }
 
@@ -121,7 +121,7 @@ public class Game {
     }
 
     private List<Card> chooseAttackCards(Player attacker, int maxCards) {
-        if (!attacker.isHuman()) {
+        if (attacker.isHuman()) {
             return List.of(attacker.getHand().get(0));
         }
 
@@ -147,7 +147,7 @@ public class Game {
     }
 
     private boolean defendSingleCard(Player defender, Card attackCard) {
-        if (!defender.isHuman()) {
+        if (defender.isHuman()) {
             return defender.getHand().stream()
                     .filter(card -> canDefend(card, attackCard))
                     .findFirst()

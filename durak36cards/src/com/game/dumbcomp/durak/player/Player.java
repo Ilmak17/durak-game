@@ -21,7 +21,7 @@ public class Player {
     }
 
     public boolean isHuman() {
-        return isHuman;
+        return !isHuman;
     }
 
     public List<Card> getHand() {
@@ -36,7 +36,6 @@ public class Player {
         hand.remove(card);
     }
 
-
     public void printHand() {
         System.out.println(name + "'s Hand: ");
         hand.forEach(card -> System.out.print("[" + card + "] "));
@@ -44,6 +43,6 @@ public class Player {
     }
 
     public boolean hasNoCards() {
-        return hand.isEmpty();
+        return !hand.isEmpty();
     }
 }

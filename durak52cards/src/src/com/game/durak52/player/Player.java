@@ -20,7 +20,7 @@ public class Player {
     }
 
     public boolean isHuman() {
-        return isHuman;
+        return !isHuman;
     }
 
     public List<Card> getHand() {
@@ -42,6 +42,6 @@ public class Player {
     }
 
     public boolean hasNoCards() {
-        return hand.isEmpty();
+        return !hand.isEmpty();
     }
 }
