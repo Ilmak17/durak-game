@@ -24,7 +24,7 @@ public class Game {
 
     public void setupGame() {
         System.out.println("=== Welcome to Durak ===");
-        int numPlayers = getInput("Enter the number of players (2-6): ", 2, 6);
+        int numPlayers = getInput("Enter the number of players (2-6): ");
 
         for (int i = 1; i <= numPlayers; i++) {
             System.out.print("Enter name for player " + i + ": ");
@@ -37,12 +37,12 @@ public class Game {
         dealInitialCards();
     }
 
-    private int getInput(String prompt, int min, int max) {
+    private int getInput(String prompt) {
         int input;
         do {
             System.out.print(prompt);
             input = scanner.nextInt();
-        } while (input < min || input > max);
+        } while (input < 2 || input > 6);
         return input;
     }
 
@@ -91,8 +91,13 @@ public class Game {
 
         if (defenderTakesCards) {
             System.out.println(defender.getName() + " cannot defend and takes the cards.");
-            defender.getHand().addAll(attackCards);
-            defender.getHand().addAll(table);
+
+            if (defender.getHand().size() >= 6) {
+                defender.getHand().addAll(attackCards);
+            } else {
+                defender.getHand().addAll(attackCards);
+                defender.getHand().addAll(table);
+            }
 
             skippedPlayers.add(defender);
         } else {
@@ -184,6 +189,10 @@ public class Game {
 
     private void drawCards() {
         players.forEach(player -> {
+            if (player.getHand().size() >= 6) {
+                return;
+            }
+
             while (player.getHand().size() < 6 && !deck.isEmpty()) {
                 deck.draw().ifPresent(player::addCard);
             }

@@ -75,8 +75,13 @@ public class Game {
 
         if (defenderTakesCards) {
             System.out.println(defender.getName() + " cannot defend and takes the cards.");
-            defender.getHand().addAll(attackCards);
-            defender.getHand().addAll(table);
+
+            if (defender.getHand().size() >= 6) {
+                defender.getHand().addAll(attackCards);
+            } else {
+                defender.getHand().addAll(attackCards);
+                defender.getHand().addAll(table);
+            }
         } else {
             System.out.println(defender.getName() + " successfully defended!");
             discardPile.addAll(attackCards);
@@ -101,9 +106,9 @@ public class Game {
                 .filter(index -> index >= 0 && index < attacker.getHand().size())
                 .limit(maxCards)
                 .map(attacker.getHand()::get)
-                .peek(card -> table.add(card))
+                .peek(table::add)
                 .peek(attacker::removeCard)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private List<Card> chooseRandomAttackCards(Player attacker, int maxCards) {
@@ -181,6 +186,10 @@ public class Game {
 
     private void drawCards() {
         players.forEach(player -> {
+            if (player.getHand().size() >= 6) {
+                return;
+            }
+
             while (player.getHand().size() < 6 && !deck.isEmpty()) {
                 deck.draw().ifPresent(player::addCard);
             }
