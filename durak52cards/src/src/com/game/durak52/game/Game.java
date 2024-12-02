@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class Game {
     private final Deck deck = new Deck();
@@ -139,7 +138,7 @@ public class Game {
                 .map(attacker.getHand()::get)
                 .peek(table::add)
                 .peek(attacker::removeCard)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private boolean defendCards(Player defender, List<Card> attackCards) {

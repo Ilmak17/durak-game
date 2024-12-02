@@ -14,6 +14,7 @@ public class Game {
     private final List<Card> discardPile = new ArrayList<>();
     private Suit trumpSuit;
     private final Scanner scanner = new Scanner(System.in);
+    private final Random random = new Random();
 
     public void setupGame() {
         System.out.println("=== Welcome to Durak ===");
@@ -111,7 +112,6 @@ public class Game {
     }
 
     private List<Card> chooseRandomAttackCards(Player attacker, int maxCards) {
-        Random random = new Random();
         int numCards = Math.min(maxCards, attacker.getHand().size());
         List<Card> attackCards = new ArrayList<>();
 

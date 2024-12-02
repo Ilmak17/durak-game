@@ -13,7 +13,6 @@ import java.util.Scanner;
 
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Game {
     private final Deck deck = new Deck();
@@ -118,7 +117,7 @@ public class Game {
                 .limit(maxCards)
                 .peek(table::add)
                 .peek(attacker::removeCard)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private boolean defendCards(Player defender, List<Card> attackCards) {

@@ -6,7 +6,6 @@ import com.game.dumbcomp.durak.cards.enums.Suit;
 import com.game.dumbcomp.durak.player.Player;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Game {
     private final Deck deck = new Deck();
@@ -134,7 +133,7 @@ public class Game {
                 .map(attacker.getHand()::get)
                 .peek(table::add)
                 .peek(attacker::removeCard)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private boolean defendCards(Player defender, List<Card> attackCards) {
