@@ -21,7 +21,7 @@ public class Game {
     private Suit trumpSuit;
     private final Scanner scanner = new Scanner(System.in);
 
-    public void setupGame() {
+    private void setupGame() {
         System.out.println("=== Welcome to Durak ===");
         int numPlayers = getInput("Enter the number of players (2-6): ");
 
@@ -57,6 +57,7 @@ public class Game {
     }
 
     public void startGame() {
+        setupGame();
         System.out.println("\n=== Game Starts! ===");
         while (!isGameOver()) {
             executeTurn();

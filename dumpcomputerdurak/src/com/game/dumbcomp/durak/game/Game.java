@@ -16,7 +16,7 @@ public class Game {
     private final Scanner scanner = new Scanner(System.in);
     private final Random random = new Random();
 
-    public void setupGame() {
+    private void setupGame() {
         System.out.println("=== Welcome to Durak ===");
 
         System.out.print("Enter your name: ");
@@ -42,6 +42,8 @@ public class Game {
     }
 
     public void startGame() {
+        setupGame();
+
         System.out.println("\n=== Game Starts! ===");
         while (!isGameOver()) {
             executeTurn();
