@@ -2,6 +2,7 @@ package src.com.game.smartcomp.durak.player;
 
 
 import src.com.game.smartcomp.durak.cards.Card;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +35,6 @@ public class Player {
     public void removeCard(Card card) {
         hand.remove(card);
     }
-
 
     public void printHand() {
         System.out.println(name + "'s Hand: ");
